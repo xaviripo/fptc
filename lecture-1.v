@@ -428,4 +428,22 @@ Lemma demorgan_second_compl (P Q: Prop):
   ~(P /\ Q) -> ~P \/ ~Q
 .
 Proof.
-Admitted.
+  intro.
+  apply NNPP.
+  intro.
+  apply H.
+  apply introduce_double_negation.
+  split.
+  - apply NNPP.
+    intro.
+    apply H1.
+    destruct H0.
+    left.
+    exact H1.
+  - apply NNPP.
+    intro.
+    apply H1.
+    destruct H0.
+    right.
+    exact H1.
+Qed.
