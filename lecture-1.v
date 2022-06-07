@@ -221,7 +221,10 @@ Lemma disj_commutes_iff (P Q: Prop):
   P \/ Q <-> Q \/ P
 .
 Proof.
-Admitted.
+  split.
+  - apply disj_commutes.
+  - apply disj_commutes with (P := Q).
+Qed.
 
 (* Homework --- Exercise 2 *)
 Lemma disj_distributes (P Q R: Prop):
