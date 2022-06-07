@@ -231,42 +231,113 @@ Lemma disj_distributes (P Q R: Prop):
   P \/ (Q /\ R) -> (P \/ Q) /\ (P \/ R)
 .
 Proof.
-Admitted.
+  (* Start by pulling the premise in. *)
+  intro.
+  (* Break the conjunction in two. *)
+  destruct H.
+  (* A case distinction on the disjunction. *)
+  - split.
+    + left.
+      exact H.
+    + left.
+      exact H.
+  - destruct H.
+    split.
+    + right.
+      exact H.
+    + right.
+      exact H0.
+Qed.
 
 (* Homework --- Exercise 3 *)
 Lemma disj_distributes_compl (P Q R: Prop):
   (P \/ Q) /\ (P \/ R) -> P \/ (Q /\ R)
 .
 Proof.
-Admitted.
+  intro.
+  destruct H.
+  destruct H.
+  - left.
+    exact H.
+  - destruct H0.
+    + left.
+      exact H0.
+    + right.
+      split.
+      * exact H.
+      * exact H0.
+Qed.
 
 (* Homework --- Exercise 4 *)
 Lemma disj_associative (P Q R: Prop):
   (P \/ Q) \/ R -> P \/ (Q \/ R)
 .
 Proof.
-Admitted.
+  intro.
+  destruct H.
+  - destruct H.
+    + left.
+      exact H.
+    + right.
+      left.
+      exact H.
+  - right.
+    right.
+    exact H.
+Qed.
 
 (* Homework --- Exercise 5 *)
 Lemma disj_associative_compl (P Q R: Prop):
   P \/ (Q \/ R) -> (P \/ Q) \/ R
 .
 Proof.
-Admitted.
+  intro.
+  destruct H.
+  - left.
+    left.
+    exact H.
+  - destruct H.
+    + left.
+      right.
+      exact H.
+    + right.
+      exact H.
+Qed.
 
 (* Homework --- Exercise 6 *)
 Lemma conj_associative (P Q R: Prop):
   (P /\ Q) /\ R -> P /\ (Q /\ R)
 .
 Proof.
-Admitted.
+  intro.
+  split.
+  - destruct H.
+    destruct H.
+    exact H.
+  - destruct H.
+    destruct H.
+    split.
+    + exact H1.
+    + exact H0.
+Qed.
 
 (* Homework --- Exercise 7 *)
 Lemma conj_associative_compl (P Q R: Prop):
   P /\ (Q /\ R) -> (P /\ Q) /\ R
 .
 Proof.
-Admitted.
+  intro.
+  split.
+  - split.
+    + destruct H.
+      exact H.
+    + destruct H.
+      destruct H0.
+      exact H0.
+  - destruct H.
+    destruct H0.
+    exact H1.
+Qed.
 
 Lemma introduce_double_negation (P: Prop):
   P -> ~~P
@@ -293,21 +364,48 @@ Lemma demorgan_first (P Q: Prop):
   ~(P \/ Q) -> ~P /\ ~Q
 .
 Proof.
-Admitted.
+  intro.
+  split.
+  - intro.
+    apply H.
+    left.
+    exact H0.
+  - intro.
+    apply H.
+    right.
+    exact H0.
+Qed.
 
 (* Homework --- Exercise 9 *)
 Lemma demorgan_first_compl (P Q: Prop):
   ~P /\ ~Q -> ~(P \/ Q)
 .
 Proof.
-Admitted.
+  intro.
+  intro.
+  destruct H.
+  destruct H0.
+  - apply H.
+    exact H0.
+  - apply H1.
+    exact H0.
+Qed.
 
 (* Homework --- Exercise 10 *)
 Lemma demorgan_second (P Q: Prop):
   ~P \/ ~Q -> ~(P /\ Q)
 .
 Proof.
-Admitted.
+  intro.
+  intro.
+  destruct H.
+  - destruct H0.
+    apply H.
+    exact H0.
+  - destruct H0.
+    apply H.
+    exact H1.
+Qed.
 
 (* For the last DeMorgan law, we need to use double negation elimination,
    i.e., that ~~P -> P. Because Coq's underlying logic is intuitionistic,
