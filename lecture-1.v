@@ -432,7 +432,6 @@ Proof.
   apply NNPP.
   intro.
   apply H.
-  apply introduce_double_negation.
   split.
   - apply NNPP.
     intro.
