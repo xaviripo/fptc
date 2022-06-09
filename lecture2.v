@@ -118,7 +118,19 @@ Lemma add_associate (n m k: nat):
   (n + m) + k = n + (m + k)
 .
 Proof.
-Admitted.
+  induction n.
+  - rewrite add_zero_left.
+    rewrite add_zero_left.
+    reflexivity.
+  - rewrite add_succ.
+    simpl.
+    rewrite add_succ.
+    simpl.
+    rewrite add_succ.
+    simpl.
+    f_equal.
+    apply IHn.
+Qed.
 
 (* Homework --- Exercise 2 *)
 Lemma add_exchange (p q r s: nat):
@@ -126,7 +138,13 @@ Lemma add_exchange (p q r s: nat):
   (p + r) + (q + s)
 .
 Proof.
-Admitted.
+  rewrite add_associate.
+  rewrite <- add_associate with (n := q).
+  rewrite add_commute with (n := q).
+  rewrite add_associate.
+  rewrite <- add_associate.
+  reflexivity.
+Qed.
 
 (* We may also define addition by recursion on the first operand. *)
 Fixpoint add' (n m: nat): nat :=
@@ -142,7 +160,16 @@ Lemma add_vs_add' (n m: nat):
   n + m = add' n m
 .
 Proof.
-Admitted.
+  induction n.
+  - simpl.
+    rewrite add_zero_left.
+    reflexivity.
+  - simpl.
+    rewrite add_succ.
+    simpl.
+    f_equal.
+    apply IHn.
+Qed.
 
 (* Multiplication can also be defined recursively. *)
 Fixpoint mul (n m: nat): nat :=
@@ -174,14 +201,32 @@ Lemma mul_succ (n m: nat):
   (Succ n) * m = m + (n * m)
 .
 Proof.
-Admitted.
+  induction m.
+  - simpl.
+    reflexivity.
+  - simpl.
+    rewrite IHm.
+    rewrite add_succ.
+    simpl.
+    rewrite add_associate.
+    reflexivity.
+Qed.
 
 (* Homework --- Exercise 5 *)
 Lemma mul_commute (n m: nat):
   n * m = m * n
 .
 Proof.
-Admitted.
+  induction m.
+  - simpl.
+    rewrite mul_zero.
+    reflexivity.
+  - simpl.
+    rewrite mul_succ.
+    rewrite add_commute.
+    rewrite IHm.
+    reflexivity.
+Qed.
 
 (* Of course, we can also define multiplication differently. *)
 Fixpoint mul' (n m: nat): nat :=
@@ -196,7 +241,14 @@ Lemma mul_vs_mul' (n m: nat):
   n * m = mul' n m
 .
 Proof.
-Admitted.
+  induction n.
+  - simpl.
+    apply mul_zero.
+  - simpl.
+    rewrite mul_succ.
+    rewrite IHn.
+    reflexivity.
+Qed.
 
 (* Recursively compute the sum of the first n odd numbers. *)
 Fixpoint sum_odd (n: nat): nat :=
@@ -243,7 +295,19 @@ Lemma mul_distribute_right (n m k: nat):
   (n + m) * k = n * k + m * k
 .
 Proof.
-Admitted.
+  induction k.
+  - simpl.
+    reflexivity.
+  - simpl.
+    rewrite IHk.
+    rewrite add_associate.
+    rewrite add_associate.
+    f_equal. (* Throwing out the trash *)
+    rewrite <- add_associate.
+    rewrite (add_commute (m * k)).
+    rewrite add_associate.
+    reflexivity.
+Qed.
 
 (* Calculate 1 + 2 + ... + n recursively. *)
 Fixpoint accumulate (n: nat): nat :=
@@ -262,7 +326,39 @@ Lemma gauss_correct (n: nat):
   2 * (accumulate n) = n * (Succ n)
 .
 Proof.
-Admitted.
+  induction n.
+  - simpl.
+    reflexivity.
+  - simpl.
+    (* I'm probably not doing this as you intended because I need distributivity on the other side *)
+    rewrite mul_commute.
+    rewrite mul_distribute_right.
+    rewrite mul_commute.
+    rewrite (mul_commute (accumulate n)).
+    rewrite IHn.
+    (* Now we make both sides into Succ(...) to use f_equal *)
+    rewrite mul_commute.
+    simpl (Succ n * 2).
+    rewrite add_zero_left.
+    rewrite add_succ.
+    simpl add.
+    f_equal.
+    (* Again, fix the right side to have Succ(...) *)
+    rewrite (add_commute (Succ n)).
+    rewrite add_associate.
+    rewrite (add_commute (Succ n)).
+    rewrite <- add_associate.
+    simpl add.
+    (* Now the left side *)
+    rewrite add_succ.
+    simpl.
+    f_equal.
+    rewrite (mul_commute (Succ n)).
+    simpl.
+    rewrite <- add_associate.
+    rewrite (add_commute (n*n)).
+    reflexivity.
+Qed.
 
 (* Let's try to define the Fibonacci numbers. *)
 Fail Fixpoint fib (n: nat): nat :=
@@ -394,7 +490,25 @@ Lemma less_than_equal_shift (n m: nat):
   n <= m -> Succ n <= Succ m
 .
 Proof.
-Admitted.
+  intro.
+  induction m.
+  - simple inversion H.
+    + rewrite <- H0.
+      rewrite H1.
+      apply LERefl.
+    + discriminate.
+  - simple inversion H.
+    + rewrite <- H0.
+      rewrite H1.
+      apply LERefl.
+    + rewrite <- H2.
+      rewrite H1.
+      inversion H2.
+      intro.
+      apply LESucc.
+      apply IHm.
+      apply H0.
+Qed.
 
 (* Any number that is at most zero must actually be zero. *)
 Lemma less_than_equal_zero (n: nat):
@@ -445,7 +559,14 @@ Lemma less_than_equal_mono_add_left (n m k: nat):
   n <= m -> n + k <= m + k
 .
 Proof.
-Admitted.
+  intro.
+  induction k.
+  - simpl.
+    apply H.
+  - simpl.
+    apply less_than_equal_shift.
+    apply IHk.
+Qed.
 
 Lemma less_than_equal_mono_add (n m k l: nat):
   n <= m ->
@@ -475,7 +596,15 @@ Lemma less_than_equal_mono_mul (n m k: nat):
   n <= m -> n * k <= m * k
 .
 Proof.
-Admitted.
+  intro.
+  induction k.
+  - simpl.
+    apply LERefl.
+  - simpl.
+    apply less_than_equal_mono_add.
+    + apply IHk.
+    + apply H.
+Qed.
 
 (* Homework --- Exercise 12:
 
@@ -490,12 +619,10 @@ Admitted.
 *)
 Reserved Notation "n <== m" (at level 70, no associativity).
 Inductive less_than_equal': nat -> nat -> Prop :=
-(* Hint 1: Here is a suggestion for what the cases would look like: *)
-(*
-| LE'Base: (* Encode rule 1 here *)
-| LE'Step: (* Encode rule 2 here *)
-| LE'Trans: (* Encode rule 3 here *)
-*)
+| LE'Base: forall (n: nat), n <== n
+| LE'Step: forall (n: nat), n <== Succ n
+| LE'Trans: forall (n m k: nat), n <== m -> m <== k -> n <== k
+
 (* Hint 2: Be sure to use the notation "<==" instead of "<="! *)
 where "n <== m" := (less_than_equal' n m).
 
@@ -505,11 +632,38 @@ where "n <== m" := (less_than_equal' n m).
 
    Hint: split the "if and only if", and then proceed by induction on the
    construction of the premise. *)
+
+Lemma le_defs_equivalent_ltr (n m: nat):
+  n <= m -> n <== m
+.
+Proof.
+  intro.
+  induction m.
+  - apply less_than_equal_zero in H.
+    rewrite H.
+    apply LE'Base.
+  - inversion H.
+    + apply LE'Base.
+    + apply IHm in H2.
+      (* I'm shocked that this even worked. *)
+      apply (LE'Trans n m (Succ m) H2 (LE'Step m)).
+Qed.
+
+Lemma le_defs_equivalent_rtl (n m: nat):
+  n <== m -> n <= m
+.
+Proof.
+  (* ??? *)
+Admitted.
+
 Lemma le_defs_equivalent (n m: nat):
   n <= m <-> n <== m
 .
 Proof.
-Admitted.
+  split.
+  - apply le_defs_equivalent_ltr.
+  - apply le_defs_equivalent_rtl.
+Qed.
 
 (* The Lucas numbers are a series defined as follows. *)
 Fixpoint lucas (n: nat): nat :=
