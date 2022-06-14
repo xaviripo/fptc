@@ -142,7 +142,7 @@ Proof.
         apply GRefl.
       * (* Replace the 0 with w + -w. *)
         apply GSymm.
-        apply GInverseRight with (u0 := w).
+        apply GInverseRight with (u := w).
     + (* We then reassociate the parentheses to the left. *)
       eapply GTrans.
       * apply GAssoc.
@@ -208,7 +208,7 @@ Proof.
   rewrite <- GUnitRight.
   (* Now we replace 0 with w + -w). Notice how this rewrite happens *inside*
      the term. This is only allowed because == is a congruence w.r.t. +. *)
-  rewrite <- GInverseRight with (u0 := w).
+  rewrite <- GInverseRight with (u := w).
   (* Next we perform the associativity step. *)
   rewrite GAssoc.
   (* We can now rewrite u + w as v + w, again using congruence. *)
@@ -262,7 +262,13 @@ Lemma group_inverse_left {X: Type} (u: group_term X):
   -u + u == 0
 .
 Proof.
-Admitted.
+  apply group_cancellation with (w := -u).
+  rewrite <- GAssoc.
+  rewrite GInverseRight.
+  rewrite GUnitRight.
+  apply GSymm.
+  apply group_unit_left.
+Qed.
 
 (* Let's revisit the unique group unit lemma from before. You can find a
    traditional derivation proof above.
@@ -274,7 +280,18 @@ Lemma group_unit_unique {X: Type} (u e: group_term X)
   e == 0
 .
 Proof.
-Admitted.
+  (* e == e + 0              (unit)
+       == e + (u + -u)       (inverse)
+       == (e + u) + -u       (associativity)
+       == u +- u             (premise)
+       == 0                  (inverse) *)
+  intro.
+  rewrite <- GUnitRight.
+  rewrite <- GInverseRight with (u := u).
+  rewrite GAssoc.
+  rewrite H.
+  reflexivity.
+Qed.
 
 (* Inverses are unique --- i.e., if something behaves like an inverse of an
    element, then it is *the* inverse of that element.
@@ -288,7 +305,18 @@ Lemma group_inverse_unique {X: Type} (u v: group_term X)
   v == -u
 .
 Proof.
-Admitted.
+  (* v == 0 + v              (left unit)
+       == (-u + u) + v       (left inverse)
+       == -u + (u + v)       (associativity)
+       == -u + 0             (premise)
+       == -u                 (unit) *)
+  intro.
+  rewrite <- group_unit_left with (u := v).
+  rewrite <- group_inverse_left with (u := u).
+  rewrite <- GAssoc.
+  rewrite H.
+  apply GUnitRight.
+Qed.
 
 (* The inverse of a sum is the sum of inverses.
 
@@ -300,7 +328,20 @@ Lemma group_reversal {X: Type} (u v: group_term X):
   -(u + v) == -v + -u
 .
 Proof.
-Admitted.
+  (* (-v + -u) + (u + v) == ((-v + -u) + u) + v (associativity)
+                         == (-v + (-u + u)) + v (associativity)
+                         == (-v + 0) + v        (left inverse)
+                         == -v + v              (unit)
+                         == 0                   (left inverse) *)
+  apply group_cancellation with (w := (u + v)).
+  rewrite group_inverse_left.
+  rewrite GAssoc.
+  rewrite <- GAssoc with (u := -v).
+  rewrite group_inverse_left.
+  rewrite GUnitRight.
+  rewrite group_inverse_left.
+  reflexivity.
+Qed.
 
 (* Group equivalence is a congruence w.r.t. inverses --- i.e., the inverse of
    two equivalent expressions is again equivalent.
@@ -309,12 +350,49 @@ Admitted.
    first, then formalize it using rewrites.
 
    As before, you may apply any of the lemmas proved above. *)
+
+
+(* Same proof as group_cancellation but using left instead of right *)
+Lemma group_cancellation_left {X: Type} (u v w: group_term X):
+  w + u == w + v -> u == v
+.
+Proof.
+  intros.
+  rewrite <- group_unit_left.
+  rewrite <- group_inverse_left with (u := w).
+  rewrite <- GAssoc.
+  rewrite H.
+  rewrite GAssoc.
+  rewrite group_inverse_left.
+  rewrite group_unit_left.
+  reflexivity.
+Qed.
+
 Lemma group_negate_cong {X: Type} (u v: group_term X):
   u == v ->
   -u == -v
 .
 Proof.
-Admitted.
+  (* This one seems easier by equational reasoning
+  than by chains of equalities:
+      v == u                 (premise)
+      0 + v == u + 0         (left and right unit)
+      (u + -u) + v == u + 0  (inverse)
+      u + (-u + v) == u + 0  (associativity)
+      -u + v == 0            (left cancellation)
+      -u + v == -v + v       (left inverse)
+      -u == - v              (cancellation)
+       *)
+  intro.
+  apply group_cancellation with (w := v).
+  rewrite group_inverse_left.
+  apply group_cancellation_left with (w := u).
+  rewrite GAssoc.
+  rewrite GInverseRight.
+  rewrite GUnitRight.
+  rewrite group_unit_left.
+  easy.
+Qed.
 
 (* Negation is an involution --- i.e., double negation is the identity.
 
@@ -322,11 +400,35 @@ Admitted.
    first, then formalize it using rewrites.
 
    As before, you may apply any of the lemmas proved above. *)
+Lemma unit_inverse {X: Type}:
+  GUnit X == -(GUnit X)
+.
+Proof.
+  apply group_cancellation with (w := 0).
+  rewrite GUnitRight.
+  rewrite GUnitRight.
+  apply group_inverse_unique.
+  rewrite GUnitRight.
+  reflexivity.
+Qed.
+
 Lemma group_negate_involutive {X: Type} (u: group_term X):
   u == --u
 .
 Proof.
-Admitted.
+  (* --u + -u == -(u + -u)
+              == -0
+              == 0 *)
+  apply group_cancellation with (w := -u).
+  rewrite GInverseRight.
+  rewrite <- group_reversal.
+  rewrite unit_inverse.
+  (* Now that we have proven that -u == -v => u == v, how can I tell Coq
+  that it's okay to f_equal? Seems like it should be possible. *)
+  apply group_negate_cong.
+  rewrite GInverseRight.
+  reflexivity.
+Qed.
 
 (* Here is a little encore. Remember how we defined the group equivalence
    relation above, and then defined the notation afterwards? This has the
