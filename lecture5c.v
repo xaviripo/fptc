@@ -183,4 +183,36 @@ Lemma diamond_fixpoint (f: frame) (pi: program) (phi: formula) (w: world f):
   sat f (<< pi* >> phi) w <-> sat f (phi || << pi ;; pi* >> phi) w
 .
 Proof.
-Admitted.
+  simpl.
+  split; intro.
+  - destruct H.
+    destruct H.
+    induction H.
+    + now left.
+    + right.
+      destruct IHclosure.
+      * easy.
+      * exists x''.
+        intuition.
+        now exists x'.
+      * (* Poor H2 *)
+        destruct H2.
+        destruct H2.
+        destruct H2.
+        destruct H2.
+        exists x''.
+        split; try easy.
+        now exists x'.
+  - induction H.
+    + exists w.
+      intuition.
+      apply CBase.
+    + destruct H.
+      destruct H.
+      destruct H.
+      destruct H.
+      exists x.
+      split.
+      * now apply CStep with (x' := x0).
+      * easy.
+Qed.

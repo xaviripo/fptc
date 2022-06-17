@@ -238,4 +238,25 @@ Lemma box_fixpoint (f: frame) (pi: program) (phi: formula) (w: world f):
   sat f ([[ pi* ]] phi) w <-> sat f (phi && [[ pi ;; pi* ]] phi) w
 .
 Proof.
-Admitted.
+  split; intro.
+  - apply SatCon.
+    + inversion_clear H.
+      apply H0.
+      now apply PathStarBase.
+    + apply SatBox.
+      inversion_clear H.
+      intros.
+      apply H0.
+      inversion_clear H.
+      now apply PathStarStep with (w2 := w2).
+  - apply SatBox.
+    inversion_clear H.
+    inversion_clear H1.
+    intros.
+    inversion_clear H1.
+    + now rewrite <- H2.
+    + apply H.
+      apply PathSeq with (w2 := w2).
+      * exact H2.
+      * exact H3.
+Qed.

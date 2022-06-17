@@ -190,4 +190,25 @@ Lemma diamond_fixpoint (f: frame) (pi: program) (phi: formula) (w: world f):
   sat f (<< pi* >> phi) w <-> sat f (phi || << pi ;; pi* >> phi) w
 .
 Proof.
-Admitted.
+  simpl.
+  split; intro.
+  - destruct H.
+    destruct H.
+    inversion_clear H.
+    + left.
+      now rewrite H1.
+    + right.
+      exists x.
+      intuition.
+      apply PathSeq with (w2 := w2); easy.
+  - destruct H.
+    + exists w.
+      split.
+      * now apply PathStarBase.
+      * easy.
+    + destruct H.
+      exists x.
+      intuition.
+      inversion_clear H0.
+      apply PathStarStep with (w2 := w2); easy.
+Qed.
