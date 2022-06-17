@@ -164,7 +164,10 @@ Definition and_comm_iff (P Q: Prop): P /\ Q <-> Q /\ P :=
    constructors. That means you should be able to perform a "match" on it
    (analogous to and_comm above, but for different constructors). *)
 Definition or_comm (P Q: Prop) (H: P \/ Q): Q \/ P :=
-  (* write your program here *)
+  match H with
+  | or_introl HP => or_intror HP
+  | or_intror HQ => or_introl HQ
+  end
 .
 
 (* Again, the type of this object matches the earlier proof. *)
@@ -196,8 +199,10 @@ Definition curry (P Q R: Prop) (H: P /\ Q -> R): P -> Q -> R :=
 
    Hint: Remember that your function should be returning another function.
    You can use the "fun" syntax demonstrated above to accomplish this. *)
-Definition uncurry (P Q R: Prop) (H: P -> Q -> R): P /\ Q -> R.
-  (* write your program here *)
+Definition uncurry (P Q R: Prop) (H: P -> Q -> R): P /\ Q -> R :=
+  fun (Hand: P /\ Q) => match Hand with
+  | conj HP HQ => H HP HQ
+  end
 .
 
 (* Here is an object with a type that involves a "forall". It claims that for
@@ -239,11 +244,20 @@ Print zero_least_ex.
    you can perform a match on it as before; the left branch will be a proof
    of P \/ Q, which requires a further match. Can you construct an
    appropriate proof of P \/ (Q \/ R) in each branch? *)
-Definition disj_associative (P Q R: Prop) (H: (P \/ Q) \/ R): P \/ (Q \/ R).
-  (* write your program here *)
+Definition disj_associative (P Q R: Prop) (H: (P \/ Q) \/ R): P \/ (Q \/ R) :=
+  match H with
+  | or_introl Hor => match Hor with
+    | or_introl HP => or_introl HP
+    | or_intror HQ => or_intror (or_introl HQ)
+    end
+  | or_intror HR => or_intror (or_intror HR)
+  end
 .
 
 (* Homework --- Exercise 4: Complete the following definition. *)
-Definition conj_distributes (P Q R: Prop) (H: (P /\ Q) \/ (P /\ R)): P /\ (Q \/ R).
-  (* write your program here *)
+Definition conj_distributes (P Q R: Prop) (H: (P /\ Q) \/ (P /\ R)): P /\ (Q \/ R) :=
+  match H with
+  | or_introl (conj HP HQ) => conj HP (or_introl HQ)
+  | or_intror (conj HP HR) => conj HP (or_intror HR)
+  end
 .
